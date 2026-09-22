@@ -4,6 +4,8 @@
 
 TypeScript / Viteによる静的サイト。ログイン不要で、処理とデータ保存は閲覧者のブラウザ内で完結する。フォントも同梱する。
 
+公開デモ：<https://hayashiii-ghub.github.io/dedura-bot-demo/>
+
 ## 起動
 
 Node.js 24 / Bun 1.4.2で確認。
@@ -32,6 +34,9 @@ bun run dev
 保存が使えない場合はタブ内だけで動作する。頭文字の丸 → アプリ設定 →「デモをリセット」でサンプルに戻せる。
 
 ## 静的サイトとして公開
+
+GitHub Pagesへは、mainへのpushで自動公開する。`.github/workflows/pages.yml`が単体テスト・型チェック・ビルド・ブラウザテストを行い、成功した`dist/`を配信する。
+GitHub Actionsから手動実行もできる。
 
 ```bash
 bun run build
