@@ -1,0 +1,112 @@
+import { test as base, expect } from '@playwright/test'
+
+const test = base.extend<{ checkRequests: void }>({
+  checkRequests: [async ({ page }, use) => {
+    const invalid: string[] = [], errors: string[] = []
+    page.on('request', r => {
+      if (!['http:', 'https:'].includes(new URL(r.url()).protocol)) return
+      if (new URL(r.url()).origin !== 'http://127.0.0.1:4181' || !['GET', 'HEAD'].includes(r.method())) invalid.push(`${r.method()} ${r.url()}`)
+    })
+    page.on('pageerror', error => errors.push(error.message))
+    await use()
+    expect(invalid, '外部通信・書き込みAPIを使わない').toEqual([])
+    expect(errors, 'ブラウザ内の例外がない').toEqual([])
+  }, { auto: true }],
+})
+
+test('打刻カード・キーボード・ローカル保存', async ({ page }, info) => {
+  await page.goto('/'); await page.evaluate(() => document.fonts.ready)
+  await page.evaluate(() => Promise.allSettled(document.getAnimations().map(animation => animation.finished)))
+  await page.screenshot({ path: info.outputPath('home.png'), fullPage: true })
+  const front = page.locator('.flip-face:not(.ura)'), back = page.locator('.ura')
+  const height = await page.locator('.flip-inner').evaluate(el => el.getBoundingClientRect().height)
+  await page.getByRole('button', { name: '今月のつみあげを見る' }).focus(); await page.keyboard.press('Enter')
+  await expect(back).toBeVisible(); await expect(back).not.toHaveAttribute('inert')
+  await expect(back.locator('[data-yen]')).toHaveText('¥262,000')
+  await expect(front).toBeHidden()
+  expect(await page.locator('.flip-inner').evaluate(el => el.getBoundingClientRect().height)).toBeCloseTo(height, 0)
+  await page.screenshot({ path: info.outputPath('card-back.png'), fullPage: true })
+  await page.keyboard.press('Enter'); await expect(front).not.toHaveAttribute('inert')
+  await page.getByRole('button', { name: '出勤', exact: true }).click()
+  await expect(page.locator('.home-clock')).toContainText('勤務中')
+  await page.reload(); await expect(page.locator('.home-clock')).toContainText('勤務中')
+  await page.getByRole('button', { name: '退勤', exact: true }).click()
+  await page.getByLabel('退勤時刻').fill('17:00')
+  await page.getByRole('button', { name: '退勤を記録', exact: true }).click()
+  await expect(page.locator('.home-clock')).toContainText('記録済み')
+  await page.goto('/#/kintai'); await expect(page.locator('.talk')).toContainText('15日')
+})
+
+test('6つの画面・メニュー・狭い画面でも横にはみ出さない', async ({ page }, info) => {
+  for (const [id, name] of [['kintai', 'きんたい'], ['keihi', 'けいひ'], ['seikyu', 'せいきゅう'], ['shiharai', 'しはらい'], ['shime', 'しめ'], ['uriage', 'うりあげ']]) {
+    await page.goto(`/#/${id}`); await expect(page.locator('main h1')).toHaveText(name!)
+    await page.evaluate(() => document.fonts.ready)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    await page.getByRole('button', { name: `${name}のメニュー` }).click()
+    await expect(page.locator('#bot-actions')).toBeVisible()
+    await page.keyboard.press('Escape'); await expect(page.locator('#bot-actions')).not.toBeVisible()
+    await expect(page.getByRole('button', { name: `${name}のメニュー` })).toBeFocused()
+    if (id === 'seikyu') await page.screenshot({ path: info.outputPath('invoices.png'), fullPage: true })
+  }
+  await page.setViewportSize({ width: 320, height: 740 })
+  await page.goto('/#/seikyu/invoice-1'); await page.evaluate(() => document.fonts.ready)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+})
+
+test('経費・支払・請求を確認して月を締め、再開する', async ({ page }) => {
+  await page.goto('/#/shime'); await expect(page.getByRole('button', { name: '9月を締める' })).toBeDisabled()
+  await page.goto('/#/keihi/expense-1'); await page.getByRole('button', { name: 'この内容で確定する' }).click()
+  await page.goto('/#/seikyu/invoice-1'); await page.getByRole('button', { name: 'この内容で発行する' }).click()
+  await expect(page.locator('.talk')).toContainText('発行しました')
+  await page.goto('/#/shiharai'); await page.getByRole('button', { name: '支払明細を確定', exact: true }).click()
+  await page.goto('/#/shime'); await page.getByRole('button', { name: '9月を締める' }).click()
+  await page.reload(); await expect(page.locator('.talk')).toContainText('9月を締めました')
+  await page.goto('/#/kintai'); await expect(page.getByRole('button', { name: '勤務を追加' })).toBeDisabled()
+  await page.goto('/#/shime'); await page.getByRole('button', { name: '締めを取り消す' }).click()
+  await expect(page.getByRole('button', { name: '9月を締める' })).toBeEnabled()
+})
+
+test('写真と経費をブラウザ内に保存し、リセットする', async ({ page }) => {
+  await page.goto('/')
+  const image = await page.evaluate(() => { const c = document.createElement('canvas'); c.width = c.height = 10; c.getContext('2d')!.fillRect(0, 0, 10, 10); return c.toDataURL().split(',')[1]! })
+  await page.getByRole('button', { name: 'レシートを追加する' }).click()
+  await page.locator('#photo-input').setInputFiles({ name: 'sample.png', mimeType: 'image/png', buffer: Buffer.from(image, 'base64') })
+  await expect(page.locator('.upload-preview')).toBeVisible()
+  await page.getByLabel('支払先').fill('写真の確認店')
+  await page.getByRole('button', { name: '経費に追加' }).click()
+  await expect(page.locator('.shot')).toBeVisible(); await page.reload()
+  await expect(page.locator('.talk')).toContainText('写真の確認店')
+  await expect(page.locator('.shot')).toHaveAttribute('src', /^data:image\/jpeg;base64,/)
+  await page.evaluate(() => localStorage.setItem('another-app', 'keep'))
+  await page.goto('/#/app'); await page.getByRole('button', { name: 'デモをリセット' }).click()
+  await page.getByRole('button', { name: 'リセットする', exact: true }).click()
+  await expect(page).toHaveURL(/#\/$/)
+  expect(await page.evaluate(() => localStorage.getItem('another-app'))).toBe('keep')
+  await page.goto('/#/search'); await page.getByLabel('現場・取引先・支払先など').fill('写真の確認店')
+  await expect(page.locator('#search-results')).toContainText('0件')
+})
+
+test('設定保存・入力のエスケープ・検索・CSV', async ({ page }) => {
+  await page.goto('/#/app')
+  await page.getByLabel('暗い', { exact: true }).check(); await page.reload()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await page.getByLabel('表示名').fill('<img src=x onerror=alert(1)>')
+  await page.getByRole('button', { name: '名前を保存' }).click()
+  await expect(page.locator('img[src=x]')).toHaveCount(0)
+  await page.getByLabel('けいひ', { exact: true }).check()
+  await page.goto('/'); await expect(page.locator('.home-bots .row').first()).toHaveAttribute('data-bot', 'keihi')
+  await page.goto('/#/search'); await page.getByLabel('現場・取引先・支払先など').fill('桜町')
+  expect(await page.locator('.search-result').count()).toBeGreaterThan(0)
+  await page.goto('/#/uriage')
+  const download = page.waitForEvent('download'); await page.getByRole('button', { name: 'サンプルCSV' }).click()
+  expect((await download).suggestedFilename()).toBe('dedura-demo-sales-2026-09.csv')
+})
+
+test('通信を切っても操作でき、保存不可の場合も体験できる', async ({ page, context }) => {
+  await page.addInitScript(() => { Storage.prototype.setItem = () => { throw new DOMException('Full', 'QuotaExceededError') } })
+  await page.goto('/'); await page.evaluate(() => document.fonts.ready)
+  await context.setOffline(true)
+  await page.getByRole('button', { name: '出勤', exact: true }).click()
+  await expect(page.locator('.home-clock')).toContainText('勤務中')
+  await expect(page.locator('#toast')).toContainText('保存できません')
+})

@@ -1,0 +1,95 @@
+@import '@fontsource/yusei-magic/400.css';
+@import '@fontsource/zen-maru-gothic/400.css';
+@import '@fontsource/zen-maru-gothic/500.css';
+@import '@fontsource/zen-maru-gothic/700.css';
+@import './vendor/base.css';
+@import './vendor/navigation.css';
+@import './vendor/desktop.css';
+@import './vendor/home-clock.css';
+
+[hidden] { display: none !important; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button { -webkit-tap-highlight-color: transparent; }
+.demo-badge { font: 500 .58rem var(--mono); letter-spacing: .08em; border: 1px solid var(--line); border-radius: 5px; padding: 2px 5px; color: var(--dim); }
+.page > header h1 { flex: 1; }
+.page > header h1:focus { outline: none; }
+.page > header { gap: .6rem; }
+.page > header .search-link { margin-left: 0; }
+.demo-brand { display: block; font: 1.4rem var(--marker); padding: 2px 12px 22px; }
+.demo-brand span { font: .65rem var(--mono); color: var(--dim); padding-left: 6px; }
+.demo-caption { color: var(--dim); font-size: .72rem; padding: 0 8px; }
+.home-demo-note { color: var(--dim); text-align: center; font-size: .72rem; margin: 24px 0 0; }
+.home-bots { margin-top: 18px; }
+.small-note { color: var(--dim); font-size: .82rem; line-height: 1.8; }
+.record-list { margin-bottom: 10px; }
+.record-list > .it + .it { border-top: 1px solid var(--line-soft); padding-top: .65rem; }
+.record-link { display: flex; gap: 12px; align-items: center; padding: 16px 4px; border-bottom: 1px solid var(--line-soft); min-width: 0; }
+.record-link > span:nth-last-child(3), .record-link > span:first-child:not(.record-icon) { flex: 1; min-width: 0; }
+.record-link strong { font-weight: 500; font-size: .94rem; display: block; overflow-wrap: anywhere; }
+.record-link small { color: var(--dim); font-size: .76rem; display: block; overflow-wrap: anywhere; }
+.record-link > b { font: .85rem var(--mono); flex-shrink: 0; }
+.record-link > .blob { width: 28px; height: 28px; }
+.record-icon { color: var(--c-kei); width: 18px; text-align: center; flex-shrink: 0; }
+.record-link:hover { background: var(--raised); }
+.settings-view h2:first-child { margin-top: 0; }
+.theme-options { display: grid; gap: 12px; border: 0; margin: 0; padding: 0; }
+.theme-options label, .pin-options label { display: flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; }
+.pin-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.pin-options .blob { width: 25px; height: 25px; }
+.sample-receipt { align-self: flex-end; background: #fffcf0; color: #302621; padding: 24px; max-width: 100%; width: 280px; border-radius: 2px; box-shadow: 1px 4px 14px #0002; text-align: center; margin: 12px 0; }
+.sample-receipt > span, .sample-receipt small { font-size: .65rem; display: block; }
+.sample-receipt h2 { margin: 20px 0 0; font-family: var(--maru); font-size: 1.1rem; }
+.sample-receipt hr { border: 0; border-top: 1px dashed #30262166; }
+.sample-receipt small { margin-top: 22px; }
+.upload-preview { display: block; object-fit: contain; max-height: 180px; width: 100%; margin-bottom: 16px; border-radius: 8px; }
+.photo-input { display: block; width: 100%; margin-top: 16px; color: var(--dim); }
+.photo-picker { margin-top: 8px; }
+.invoice-paper { background: #fffcf0; color: #261312; border: 1px solid #cfc7b2; padding: 28px; border-radius: 4px; margin: 16px 0; width: 100%; font-size: .78rem; }
+.paper-top { display: flex; justify-content: space-between; align-items: center; }
+.paper-top h2 { margin: 0; font-size: 1.7rem; }
+.paper-top span { font: .6rem var(--mono); color: #6b675c; }
+.paper-client { font-size: 1.05rem; margin: 28px 0 12px; overflow-wrap: anywhere; }
+.paper-total { display: flex; align-items: baseline; gap: 12px; border-bottom: 2px solid #261312; padding: 16px 0 8px; margin: 16px 0; flex-wrap: wrap; }
+.paper-total strong { font: 1.9rem var(--mono); margin-left: auto; }
+.invoice-paper dl > div { display: flex; justify-content: space-between; }
+.invoice-paper dd { margin: 0; }
+.invoice-paper table { width: 100%; border-collapse: collapse; margin: 22px 0; }
+.invoice-paper th, .invoice-paper td { text-align: left; padding: 8px 0; border-bottom: 1px solid #cfc7b2; }
+.invoice-paper th:last-child, .invoice-paper td:last-child { text-align: right; white-space: nowrap; }
+.paper-issuer { text-align: right; padding-top: 12px; }
+.paper-note { margin-top: 26px; font-size: .66rem; color: #6b675c; }
+.payment-doc { width: 100%; max-width: 100%; margin: 16px 0; padding: 20px; }
+.sales-chart { padding: 24px 0; display: grid; gap: 24px; }
+.sales-chart > div { display: grid; grid-template-columns: 1fr auto; gap: 8px; font-size: .85rem; }
+.sales-chart b { font: .85rem var(--mono); }
+.sales-chart i { grid-column: 1 / -1; display: block; width: var(--width); height: 10px; border-radius: 3px; background: var(--c-uri); }
+.bottom-sheet form .solid { width: 100%; margin-top: 16px; }
+.bottom-sheet .sheet-action { width: 100%; text-align: left; cursor: pointer; background: transparent; color: var(--kinari); font: inherit; }
+.dialog-actions { display: flex; gap: 10px; margin-top: 22px; }
+.dialog-actions > button { flex: 1; }
+.app-toast { z-index: 100; }
+.skip-link { position: fixed; top: -100px; left: 12px; z-index: 101; padding: 8px 16px; background: var(--kinari); color: var(--ji); }
+.skip-link:focus { top: 12px; }
+@media (min-width: 900px) {
+  .home-bots { display: none; }
+  .desktop-home .desktop-body { justify-content: center; }
+  .home-demo-note { margin-top: 32px; }
+  .settings-view, .search-view { padding: 8px 0 30px; }
+  .desktop-ready .page > header h1 { flex: 1; }
+}
+@media (max-width: 899px) {
+  .desktop-content, .desktop-body { display: contents; }
+  .page { padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px)); }
+  .settings-view, .search-view { padding-top: 12px; }
+  .invoice-paper { padding: 20px; }
+}
+@media (max-width: 360px) {
+  .page { padding-inline: 14px; }
+  .record-link { gap: 8px; }
+  .demo-badge { font-size: .5rem; }
+}
+@media print {
+  html, body, #app, .page, .desktop-content, .desktop-body { height: auto !important; overflow: visible !important; display: block !important; margin: 0 !important; padding: 0 !important; width: 100% !important; background: white !important; }
+  .desktop-sidebar, .grid, header, .bar, .talk > :not(.invoice-paper), dialog, .app-toast, .skip-link { display: none !important; }
+  .invoice-paper { border: 0; margin: 0; padding: 1cm; break-inside: avoid; }
+}
