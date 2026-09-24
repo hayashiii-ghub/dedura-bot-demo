@@ -17,6 +17,15 @@ button { -webkit-tap-highlight-color: transparent; }
 .page > header .search-link { margin-left: 0; }
 .demo-brand { display: block; font: 1.4rem var(--marker); padding: 2px 12px 22px; }
 .demo-brand span { font: .65rem var(--mono); color: var(--dim); padding-left: 6px; }
+.month-nav { display: flex; align-items: center; gap: 2px; min-width: 0; }
+.month-step { width: 22px; height: 44px; flex: none; display: grid; place-items: center; color: var(--dim); font-size: 1.4rem; line-height: 1; }
+a.month-step:hover, a.month-step:focus-visible { color: var(--kinari); }
+.home-past { gap: 12px; }
+.home-clock:focus, .home-past:focus { outline: none; }
+.home-past .month-step { height: 44px; margin-block: -10px; }
+.home-past .mid { gap: 12px; }
+.home-past .mid > :first-child { min-width: 0; }
+.home-past .mid > a { flex-shrink: 0; }
 .demo-caption { color: var(--dim); font-size: .72rem; padding: 0 8px; }
 .home-demo-note { color: var(--dim); text-align: center; font-size: .72rem; margin: 24px 0 0; }
 .home-bots { margin-top: 18px; }
@@ -71,8 +80,18 @@ button { -webkit-tap-highlight-color: transparent; }
 .skip-link { position: fixed; top: -100px; left: 12px; z-index: 101; padding: 8px 16px; background: var(--kinari); color: var(--ji); }
 .skip-link:focus { top: 12px; }
 @media (min-width: 900px) {
+  .desktop-home .page > header { display: none; }
+  .desktop-sidebar-top > header { width: 100%; gap: 6px; margin: 0; padding: 4px 4px 10px; }
+  .desktop-sidebar-top > header .demo-brand { flex: 1; padding: 0; min-width: 0; white-space: nowrap; font: 1.2rem var(--marker); }
+  .desktop-sidebar-top > header .demo-brand .month { font: 700 1.15rem var(--maru); color: var(--kinari); padding: 0; }
+  .desktop-sidebar-top > header .demo-brand .demo-brand-label { font: .58rem var(--mono); }
+  .desktop-sidebar-top > header .search-link, .desktop-sidebar-top > header .round-button { width: 44px; height: 44px; min-height: 44px; display: grid; place-items: center; margin: 0; padding: 10px; border: 1.5px solid var(--line); border-radius: 50%; background: none; color: var(--kinari); }
+  .desktop-sidebar-top > header .search-link .nav-icon { width: 18px; height: 18px; }
+  .desktop-ready .page > header .round-button[data-action="photo"] { display: none; }
   .home-bots { display: none; }
   .desktop-home .desktop-body { justify-content: center; }
+  .desktop-home .now:not(.home-clock .now) { width: 100%; max-width: 600px; margin: 0 auto; }
+  .desktop-home .home-clock .now { padding: 20px; min-height: 160px; }
   .home-demo-note { margin-top: 32px; }
   .settings-view, .search-view { padding: 8px 0 30px; }
   .desktop-ready .page > header h1 { flex: 1; }

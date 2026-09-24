@@ -1,6 +1,7 @@
 import './style.css'
 import { initCard } from './card'
-import { blockers, escape as e, initialState, KEY, parseState, SITES, TODAY, type State } from './state'
+import { selectedMonth } from './month'
+import { blockers, escape as e, initialState, KEY, MONTH, parseState, SITES, TODAY, type State } from './state'
 import { bots, dialogContent, dialogs, expenseForm, header, invoiceForm, page, searchResults, sidebar, workForm } from './views'
 
 const app = document.querySelector<HTMLDivElement>('#app')!
@@ -41,19 +42,19 @@ function applyTheme() {
 }
 
 function render() {
-  const path = route(), current = path.split('/')[1] || ''
-  const navigated = path !== lastRoute
+  const path = route(), current = path.split('/')[1] || '', ym = selectedMonth(location.hash)
+  const navigated = location.hash !== lastRoute
   const scroll = document.querySelector('.desktop-content')?.scrollTop ?? 0
   const focused = document.activeElement instanceof HTMLElement ? document.activeElement : null
   const focusAction = focused?.dataset.action, focusId = focused?.dataset.id
-  cleanupCard(); generation++; photo = ''; lastRoute = path
-  const view = page(state, path)
+  cleanupCard(); generation++; photo = ''; lastRoute = location.hash
+  const view = page(state, path, ym)
   document.title = `${view.title} — 出面帳デモ`
   document.body.classList.toggle('desktop-home', path === '/')
   applyTheme()
-  app.innerHTML = `<a class="skip-link" href="#main-content">本文へ</a>${sidebar(state, current)}<main class="page">${header(state, path, view.title)}<div class="desktop-content" id="main-content" tabindex="-1"><div class="desktop-body">${view.body}</div></div>${view.action ? `<div class="bar bot-bar">${view.action}<button class="ghost ask-trigger" data-action="menu" aria-label="${e(view.title)}のメニュー">メニュー</button></div>` : ''}</main>${dialogs()}`
+  app.innerHTML = `<a class="skip-link" href="#main-content">本文へ</a>${sidebar(state, current, ym)}<main class="page">${header(state, path, view.title, ym)}<div class="desktop-content" id="main-content" tabindex="-1"><div class="desktop-body">${view.body}</div></div>${view.action ? `<div class="bar bot-bar">${view.action}<button class="ghost ask-trigger" data-action="menu" aria-label="${e(view.title)}のメニュー">メニュー</button></div>` : ''}</main>${dialogs()}`
   const menu = document.querySelector<HTMLDialogElement>('#bot-actions')!
-  menu.innerHTML = `<div class="sheet-grip" aria-hidden="true"></div><div class="sheet-heading"><h2 id="bot-actions-title" tabindex="-1">${e(view.title)}のメニュー</h2><button class="round-button" data-action="dismiss" aria-label="閉じる">×</button></div>${view.menu}<a class="sheet-action" href="#/app">デモの設定・リセット</a>`
+  menu.innerHTML = `<div class="sheet-grip" aria-hidden="true"></div><div class="sheet-heading"><h2 id="bot-actions-title" tabindex="-1">${e(view.title)}のメニュー</h2><button class="round-button" data-action="dismiss" aria-label="閉じる">×</button></div>${view.menu}`
   for (const dialog of document.querySelectorAll('dialog')) {
     dialog.addEventListener('close', () => { if (opener?.isConnected) opener.focus({ preventScroll: true }) })
     dialog.addEventListener('click', event => {
@@ -65,8 +66,10 @@ function render() {
   cleanupCard = initCard(); elapsed()
   if (navigated) {
     window.scrollTo(0, 0)
-    const h1 = app.querySelector<HTMLElement>('main h1')!
-    h1.tabIndex = -1; h1.focus({ preventScroll: true })
+    const heading = path === '/' && matchMedia('(min-width: 900px)').matches
+      ? app.querySelector<HTMLElement>('.home-clock, .home-past')
+      : app.querySelector<HTMLElement>('main h1')
+    if (heading) { heading.tabIndex = -1; heading.focus({ preventScroll: true }) }
   } else {
     document.querySelector('.desktop-content')!.scrollTop = scroll
     const target = focusAction ? app.querySelector<HTMLElement>(`[data-action="${CSS.escape(focusAction)}"]${focusId ? `[data-id="${CSS.escape(focusId)}"]` : ''}`) : null
@@ -106,6 +109,9 @@ document.addEventListener('click', event => {
   const target = event.target.closest<HTMLButtonElement>('[data-action]')
   if (!target || target.disabled) return
   const action = target.dataset.action, id = target.dataset.id
+  if (action === 'photo' && selectedMonth(location.hash) !== MONTH) {
+    toast('今月に戻ってからレシートを追加できます。'); return
+  }
   switch (action) {
     case 'dismiss': target.closest('dialog')?.close(); break
     case 'menu': opener = target; document.querySelector<HTMLDialogElement>('#bot-actions')!.showModal(); break
@@ -195,7 +201,7 @@ document.addEventListener('submit', event => {
 })
 
 document.addEventListener('input', event => {
-  if (event.target instanceof HTMLInputElement && event.target.id === 'search-input') document.querySelector('#search-results')!.innerHTML = searchResults(state, event.target.value)
+  if (event.target instanceof HTMLInputElement && event.target.id === 'search-input') document.querySelector('#search-results')!.innerHTML = searchResults(state, event.target.value, selectedMonth(location.hash))
 })
 
 document.addEventListener('change', async event => {

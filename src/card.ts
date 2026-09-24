@@ -48,7 +48,10 @@ export function initCard() {
     if (flip!.contains(document.activeElement)) (next ? back : mark).focus({ preventScroll: true })
   }
   mark.addEventListener('click', turn)
-  back.addEventListener('click', turn)
+  back.addEventListener('click', event => {
+    if (event.target instanceof Element && event.target.closest('.home-period')) return
+    void turn()
+  })
   back.addEventListener('keydown', event => {
     if (event.target === back && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); void turn() }
   })

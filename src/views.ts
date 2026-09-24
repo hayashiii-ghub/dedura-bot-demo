@@ -1,4 +1,5 @@
-import { blockers, duration, escape as e, SITES, TODAY, totals, yen, type State, type Invoice } from './state'
+import { blockers, duration, escape as e, MONTH, SITES, TODAY, totals, yen, type State, type Invoice } from './state'
+import { adjacentMonth, monthLink, monthName } from './month'
 
 export const bots = [
   { id: 'kintai', name: 'きんたい', color: 'k-kin' },
@@ -23,7 +24,16 @@ const siteField = () => field('現場', `<select name="site">${SITES.map(site =>
 const moneyField = (value: number) => field('金額（円）', `<input name="amount" type="number" min="1" max="100000000" step="1" value="${value}" required inputmode="numeric">`)
 const menuLink = (label: string, href: string) => `<a class="sheet-action" href="#${href}"><span>${label}</span></a>`
 
-function summary(s: State, id: string) {
+function summary(s: State, id: string, ym: string) {
+  if (ym !== MONTH) {
+    const name = `${Number(ym.slice(5))}月`
+    return id === 'kintai' ? `${name}の勤務記録はありません`
+      : id === 'keihi' ? `${name}の経費はありません`
+      : id === 'shiharai' ? `${name}の支払明細は未確定です`
+      : id === 'seikyu' ? `${name}の請求書はありません`
+      : id === 'shime' ? `${name}はまだ締められていません`
+      : 'まだ締めた月がありません'
+  }
   const t = totals(s)
   switch (id) {
     case 'kintai': return s.clock ? `${e(s.clock.site)}で勤務中です` : `${t.days}日ぶんの勤務を記録しました`;
@@ -35,29 +45,36 @@ function summary(s: State, id: string) {
   }
 }
 
-export function botList(s: State, current: string, sidebar = false) {
-  return `<nav class="list${sidebar ? '' : ' home-bots'}" aria-label="bot一覧">${[...bots].sort((a, b) => Number(s.pins.includes(b.id)) - Number(s.pins.includes(a.id))).map(b => `<a class="row" href="#/${b.id}" data-bot="${b.id}" data-pinned="${s.pins.includes(b.id)}" ${current === b.id ? 'aria-current="page"' : ''}><i class="blob ${b.color}" aria-hidden="true"></i><div class="body"><div class="top"><span class="name">${b.name}</span><span class="when">9月</span></div><div class="said">${summary(s, b.id)}</div></div></a>`).join('')}</nav>`
+export function botList(s: State, current: string, sidebar = false, ym = MONTH) {
+  return `<nav class="list${sidebar ? '' : ' home-bots'}" aria-label="bot一覧">${[...bots].sort((a, b) => Number(s.pins.includes(b.id)) - Number(s.pins.includes(a.id))).map(b => `<a class="row" href="${monthLink(`/${b.id}`, ym)}" data-bot="${b.id}" data-pinned="${s.pins.includes(b.id)}" ${current === b.id ? 'aria-current="page"' : ''}><i class="blob ${b.color}" aria-hidden="true"></i><div class="body"><div class="top"><span class="name">${b.name}</span><span class="when">${Number(ym.slice(5))}月</span></div><div class="said">${summary(s, b.id, ym)}</div></div></a>`).join('')}</nav>`
 }
 
-export function sidebar(s: State, current: string) {
-  return `<aside class="desktop-sidebar" aria-label="ナビゲーション"><div class="desktop-sidebar-top"><a class="demo-brand" href="#/">出面帳 <span>demo</span></a><a class="search-link round-button" href="#/search">${searchIcon}<span class="desktop-label">記録を探す</span></a></div>${botList(s, current, true)}<div class="desktop-sidebar-bottom"><p class="demo-caption">架空の9月を、ひととおり。<br>操作はこのブラウザの中だけ。</p><a class="account-link round-button" href="#/app"><span class="face">${e(s.name.slice(0, 1))}</span><span class="desktop-label">${e(s.name)}</span></a></div></aside>`
+export function sidebar(s: State, current: string, ym = MONTH) {
+  const inBot = bots.some(bot => bot.id === current)
+  return `<aside class="desktop-sidebar" aria-label="ナビゲーション"><div class="desktop-sidebar-top"><header><a class="demo-brand${inBot ? ' sidebar-period' : ''}" href="${monthLink('/', ym)}">${inBot ? `<span class="month">${monthName(ym)}</span>` : '出面帳'} <span class="demo-brand-label">demo</span></a><a class="search-link round-button" href="${monthLink('/search', ym)}" aria-label="記録を探す">${searchIcon}</a><button class="round-button sidebar-photo" data-action="photo" aria-label="レシートを追加する">${cameraIcon}</button></header></div>${botList(s, current, true, ym)}<div class="desktop-sidebar-bottom"><p class="demo-caption">架空の9月を、ひととおり。<br>操作はこのブラウザの中だけ。</p><a class="account-link round-button" href="${monthLink('/app', ym)}"><span class="face">${e(s.name.slice(0, 1))}</span><span class="desktop-label">${e(s.name)}</span></a></div></aside>`
 }
 
-export function header(s: State, route: string, title: string) {
+export function header(s: State, route: string, title: string, ym = MONTH) {
   const bot = bots.find(b => b.id === route.split('/')[1])
-  if (route === '/') return `<header><a class="account-link round-button" href="#/app" aria-label="アプリ設定を開く"><span class="face">${e(s.name.slice(0, 1))}</span></a><h1 class="month">2026年9月</h1>${demo}<a class="round-button search-link" href="#/search" aria-label="記録を探す">${searchIcon}</a>${camera()}</header>`
-  return `<header class="bot-header"><a class="back" href="#${route.split('/').length > 2 ? '/' + route.split('/')[1] : '/'}" aria-label="戻る">←</a>${bot ? `<i class="blob ${bot.color}" aria-hidden="true"></i>` : ''}<h1 tabindex="-1">${e(title)}</h1>${demo}${camera()}</header>`
+  if (route === '/') return `<header><a class="account-link round-button" href="${monthLink('/app', ym)}" aria-label="アプリ設定を開く"><span class="face">${e(s.name.slice(0, 1))}</span></a><h1>出面帳</h1>${demo}<a class="round-button search-link" href="${monthLink('/search', ym)}" aria-label="記録を探す">${searchIcon}</a>${camera()}</header>`
+  return `<header class="bot-header"><a class="back" href="${monthLink(route.split('/').length > 2 ? '/' + route.split('/')[1] : '/', ym)}" aria-label="戻る">←</a>${bot ? `<i class="blob ${bot.color}" aria-hidden="true"></i>` : ''}<h1 tabindex="-1">${e(title)}</h1>${demo}${camera()}</header>`
 }
 
-function home(s: State) {
+function monthPeriod(ym: string) {
+  const previous = adjacentMonth(ym, -1), next = adjacentMonth(ym, 1)
+  return `<div class="home-period"><div class="month-nav">${previous < '0001-01' ? '<span class="month-step" aria-hidden="true"></span>' : `<a class="month-step" href="${monthLink('/', previous)}" aria-label="前の月">‹</a>`}<span class="month">${monthName(ym)}</span>${next > MONTH ? '<span class="month-step" aria-hidden="true"></span>' : `<a class="month-step" href="${monthLink('/', next)}" aria-label="次の月">›</a>`}</div>${ym === MONTH ? '<span class="home-day">22日 火曜日</span>' : ''}</div>`
+}
+
+function home(s: State, ym: string) {
+  if (ym !== MONTH) return `<div class="now home-past">${monthPeriod(ym)}<div class="mid"><div>打刻は今月に戻ってからできます</div><a class="ghost" href="#/">今月に戻る</a></div></div>${botList(s, '', false, ym)}<p class="home-demo-note">サンプルの記録は2026年9月にあります。</p>`
   const t = totals(s), todayWork = s.works.filter(w => w.day === TODAY).at(-1)
   const front = s.clock
     ? `<div class="where"><i class="live"></i><span>${e(s.clock.site)} · 勤務中</span></div><div class="mid"><div class="fig"><small>経過 </small><span data-elapsed>0:00</span></div>${button('退勤', 'clock-out')}</div><div class="since">${s.clock.start}に出勤</div>`
     : todayWork
       ? `<div class="where">9月22日の勤務は記録済みです</div><div class="mid"><div class="fig"><small>実働 </small>${Math.floor(todayWork.minutes / 60)}<small>時間</small>${todayWork.minutes % 60 ? `${todayWork.minutes % 60}<small>分</small>` : ''}</div><a class="ghost" href="#/kintai">勤務を確認</a></div><div class="since">${todayWork.start}–${todayWork.end}　${e(todayWork.site)}</div>`
-      : `<div class="where">9月22日 火曜日</div><div class="mid"><form data-form="clock-in" class="home-clock-form"><span class="site-box"><select class="site" name="site" aria-label="出勤する現場">${SITES.map(n => `<option>${n}</option>`).join('')}</select><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span><button class="solid" ${s.closed ? 'disabled' : ''}>出勤</button></form></div><div class="since">${s.closed ? 'この月は締め済みです' : 'おはようございます。今日もご安全に。'}</div>`
+      : `<div class="mid"><form data-form="clock-in" class="home-clock-form"><span class="site-box"><select class="site" name="site" aria-label="出勤する現場">${SITES.map(n => `<option>${n}</option>`).join('')}</select><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span><button class="solid" ${s.closed ? 'disabled' : ''}>出勤</button></form></div>${s.closed ? '<div class="since">この月は締め済みです</div>' : ''}`
   const mark = ['g2', 'g3', 'g1', 'g2', 'g2', '', '', 'g2', 'g2', 'g3', 'g2', 'g1', 'g2', ''].map(c => `<i class="${c}"></i>`).join('')
-  return `<section class="home-clock" aria-label="打刻"><div class="flip" tabindex="-1" data-flip-ready><div class="flip-inner"><div class="flip-face"><button class="flip-mark" data-flip aria-label="今月のつみあげを見る" aria-expanded="false" aria-controls="home-card-back"><span class="mark-kusa" aria-hidden="true">${mark}</span></button><div class="now">${front}</div></div><div class="flip-face ura" id="home-card-back" role="button" tabindex="-1" aria-label="打刻に戻る" hidden inert aria-hidden="true"><div class="now"><div class="stack-summary"><div class="where">先月は ¥351,000</div><div class="mid"><div class="fig"><span class="count-size" aria-hidden="true">${yen(t.pay)}</span><span data-yen="${t.pay}">${yen(t.pay)}</span></div></div><div class="since">${t.days}日ぶん</div></div><div class="cal" aria-label="勤務した日のカレンダー">${['月', '火', '水', '木', '金', '土', '日'].map(n => `<span class="cal-head">${n}</span>`).join('')}<i class="blank"></i>${Array.from({ length: 30 }, (_, i) => { const w = s.works.find(w => Number(w.day.slice(8)) === i + 1); return `<i title="9月${i + 1}日" class="${i + 1 > 22 ? 'blank' : w ? w.minutes > 480 ? 'g3' : 'g2' : ''}${i === 21 ? ' today' : ''}" style="--w:${Math.floor((i + 1) / 7)}"></i>` }).join('')}</div></div></div></div></div></section>${botList(s, '')}<p class="home-demo-note">サンプルの9月22日を体験できます。<br>入力した内容は、このブラウザだけに保存されます。</p>`
+  return `<section class="home-clock" aria-label="打刻"><div class="flip" tabindex="-1" data-flip-ready><div class="flip-inner"><div class="flip-face"><button class="flip-mark" data-flip aria-label="今月のつみあげを見る" aria-expanded="false" aria-controls="home-card-back"><span class="mark-kusa" aria-hidden="true">${mark}</span></button><div class="now">${monthPeriod(ym)}${front}</div></div><div class="flip-face ura" id="home-card-back" role="button" tabindex="-1" aria-label="打刻に戻る" aria-describedby="home-card-summary" hidden inert aria-hidden="true"><span class="visually-hidden" id="home-card-summary">${yen(t.pay)} · ${t.days}日ぶん</span><div class="now"><div class="stack-summary">${monthPeriod(ym)}<div class="stack-value"><div class="mid"><div class="fig"><span class="count-size" aria-hidden="true">${yen(t.pay)}</span><span data-yen="${t.pay}">${yen(t.pay)}</span></div></div></div></div><div class="cal" aria-hidden="true">${['月', '火', '水', '木', '金', '土', '日'].map(n => `<span class="cal-head">${n}</span>`).join('')}<i class="blank"></i>${Array.from({ length: 30 }, (_, i) => { const w = s.works.find(w => Number(w.day.slice(8)) === i + 1); return `<i class="${w && i < 22 ? w.minutes > 480 ? 'g3' : 'g2' : 'unworked'}${i === 21 ? ' today' : ''}" style="--w:${Math.floor((i + 1) / 7)}"></i>` }).join('')}</div></div></div></div></div></section>${botList(s, '')}<p class="home-demo-note">サンプルの9月22日を体験できます。<br>入力した内容は、このブラウザだけに保存されます。</p>`
 }
 
 function attendance(s: State) {
@@ -110,7 +127,8 @@ function settings(s: State) {
   return `<div class="settings-view"><h2>このデモについて</h2><p class="lede">現場仕事の、時間とお金の帳面。<br>6つのbotと、架空の9月を体験できます。</p><p class="small-note">登場する人・会社・金額はすべてサンプルです。入力や写真は外部へ送信せず、このブラウザにだけ保存します。</p><h2>名前</h2><form data-form="profile">${field('表示名', `<input name="name" value="${e(s.name)}" maxlength="40" required autocomplete="off">`)}<button class="ghost">名前を保存</button></form><h2>外観</h2><fieldset class="theme-options"><legend class="visually-hidden">外観を選ぶ</legend>${[['system', '端末に合わせる'], ['light', '明るい'], ['dark', '暗い']].map(([v, label]) => `<label><input type="radio" name="theme" value="${v}" ${s.theme === v ? 'checked' : ''}>${label}</label>`).join('')}</fieldset><h2>よく使うbot</h2><div class="pin-options">${bots.map(b => `<label><input type="checkbox" name="pin" value="${b.id}" ${s.pins.includes(b.id) ? 'checked' : ''}><i class="blob ${b.color}" aria-hidden="true"></i>${b.name}</label>`).join('')}</div><h2>はじめから</h2><p class="small-note">このデモに追加した記録・写真・設定を消し、最初のサンプルに戻します。</p><button class="ghost" data-action="reset">デモをリセット</button></div>`
 }
 
-export function searchResults(s: State, query: string) {
+export function searchResults(s: State, query: string, ym = MONTH) {
+  if (ym !== MONTH) return '<p class="small-note" role="status">0件の記録</p><p class="empty">この月のサンプル記録はありません。</p>'
   const rows = [
     ...s.works.map(w => ({ title: `${day(w.day)} ${w.site}`, sub: `勤務 · ${duration(w.minutes)}`, href: '/kintai' })),
     ...s.expenses.map(x => ({ title: x.vendor, sub: `経費 · ${x.category} · ${yen(x.amount)}`, href: `/keihi/${x.id}` })),
@@ -121,12 +139,17 @@ export function searchResults(s: State, query: string) {
 
 const notFound = () => `<div class="talk">${msg('このデモには見つからない記録です。')}${chips([['ホームに戻る', '/']])}</div>`
 
-export function page(s: State, route: string) {
+export function page(s: State, route: string, ym = MONTH) {
   const [section, id] = route.slice(1).split('/')
   let title = bots.find(b => b.id === section)?.name ?? '出面帳'
   let body = '', action = '', menu = ''
+  if (ym !== MONTH && bots.some(bot => bot.id === section)) return {
+    title,
+    body: `<div class="talk"><div class="day">対象月：${ym}</div>${msg(`${Number(ym.slice(5))}月のサンプル記録はありません。`, true)}${chips([['今月に戻る', '/']])}</div>`,
+    action, menu,
+  }
   switch (section) {
-    case '': body = home(s); break
+    case '': body = home(s, ym); break
     case 'kintai': body = attendance(s); action = button('勤務を追加', 'add-work', s.closed ? 'disabled' : ''); menu = menuLink('打刻に戻る', '/') + menuLink('支払明細', '/shiharai'); break
     case 'keihi': body = id ? expenseDetail(s, id) : expenses(s); action = button('経費を追加', 'add-expense', s.closed ? 'disabled' : ''); menu = `<button class="sheet-action" data-action="photo">領収書の写真から</button>` + menuLink('経費一覧', '/keihi'); break
     case 'seikyu': body = id ? invoiceDetail(s, id) : invoices(s); action = button('請求書を作成', 'add-invoice', s.closed ? 'disabled' : ''); menu = menuLink('請求書の一覧', '/seikyu') + menuLink('売上を見る', '/uriage'); break
@@ -134,7 +157,7 @@ export function page(s: State, route: string) {
     case 'shime': body = closing(s); action = button(s.closed ? '締めを取り消す' : '9月を締める', s.closed ? 'undo-close' : 'close-month', !s.closed && blockers(s).length ? 'disabled' : ''); menu = menuLink('売上を見る', '/uriage') + menuLink('経費を見る', '/keihi'); break
     case 'uriage': body = sales(s); action = button('サンプルCSV', 'csv'); menu = menuLink('請求書を見る', '/seikyu') + menuLink('今月を締める', '/shime'); break
     case 'app': title = 'アプリ設定'; body = settings(s); break
-    case 'search': title = '記録を探す'; body = `<div class="search-view"><label class="fld"><span>現場・取引先・支払先など</span><input id="search-input" type="search" placeholder="例：桜町" autocomplete="off"></label><div id="search-results">${searchResults(s, '')}</div></div>`; break
+    case 'search': title = '記録を探す'; body = `<div class="search-view"><label class="fld"><span>現場・取引先・支払先など</span><input id="search-input" type="search" placeholder="例：桜町" autocomplete="off"></label><div id="search-results">${searchResults(s, '', ym)}</div></div>`; break
     default: body = notFound()
   }
   return { title, body, action, menu }

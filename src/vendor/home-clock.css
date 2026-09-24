@@ -1,4 +1,9 @@
 .home-clock { --clock-card-height: 160px; width: 100%; min-width: 0; margin-bottom: 8px; }
+.home-period { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; font-size: .88rem; line-height: 20px; }
+.home-period .month-nav { flex: none; line-height: 24px; }
+.home-period .month-step { height: 44px; margin-block: -10px; }
+.home-period .month { font-size: 1rem; white-space: nowrap; }
+.home-day { margin-left: 24px; color: var(--dim); white-space: nowrap; }
 .home-clock .now { min-height: var(--clock-card-height); margin: 0; max-width: none; width: 100%; padding: 18px; justify-content: center; gap: 12px; }
 .home-clock .where { min-width: 0; align-items: flex-start; overflow-wrap: anywhere; }
 .home-clock .where .live { margin-top: .5em; }
@@ -15,7 +20,7 @@
   .desktop-home .home-clock .now { padding: 20px; min-height: var(--clock-card-height); margin: 0; max-width: none; }
 }
 
-/* --- 打刻カードの裏。金額の3段とカレンダーを横に並べる --- */
+/* --- 打刻カードの裏。日付・金額とカレンダーを横に並べる --- */
 /* 両面を同じグリッドに置き、通常時は内容を切らずに高さを揃える。 */
 .home-clock .flip-inner { position: relative; display: grid; grid-template-rows: minmax(min-content, auto); }
 .home-clock .flip-face { position: relative; width: 100%; min-width: 0; grid-area: 1 / 1;
@@ -32,15 +37,18 @@
 /* カレンダー用の列幅を確保し、狭い画面でも金額と重ねない。 */
 .home-clock .flip-face.ura { --cell: clamp(11px, 3.2vw, 14px);
   --cal-w: calc(var(--cell) * 7 + 24px); }
-.home-clock .flip-face.ura .where { min-height: 24px; }
-.home-clock .flip-face.ura .mid { min-height: 48px; align-items: center; }
-.home-clock .flip-face.ura .since { font-variant-numeric: tabular-nums; }
-.home-clock .flip-face.ura .fig { display: grid; }
+.home-clock .flip-face.ura .mid { min-height: 28px; align-items: center; }
+.home-clock .flip-face.ura .fig { display: grid; font-size: clamp(1.2rem, 6vw, 1.5rem); line-height: 28px; }
 .home-clock .flip-face.ura .fig.rate-unset { font-size: 1.1rem; overflow-wrap: anywhere; }
 .home-clock .flip-face.ura .fig > span { grid-area: 1 / 1; }
 .home-clock .count-size { visibility: hidden; pointer-events: none; }
 .home-clock .flip-face.ura .now { flex-direction: row; align-items: center; }
-.home-clock .stack-summary { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+/* 表の日付44px・間隔12px・操作欄48pxと同じ高さを確保する。 */
+.home-clock .stack-summary { flex: 1; min-width: 0; min-height: 104px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px; }
+.home-clock .stack-summary .home-period { cursor: default; }
+.home-clock .stack-value { margin-left: 24px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.home-clock .stack-summary .month-step[aria-hidden] { display: none; }
+.home-clock .stack-previous { color: var(--dim); font-size: .7rem; line-height: 16px; overflow-wrap: anywhere; }
 
 /* おもての右上の印。押せる範囲は44px */
 .flip-mark { position: absolute; top: 8px; right: 8px; z-index: 1; width: 44px; height: 44px;
@@ -59,6 +67,7 @@
 .cal i { aspect-ratio: 1; border-radius: 3px;
   background: color-mix(in srgb, var(--kinari) 8%, transparent); }
 .cal i.blank { background: none; }
+.cal i.unworked { background: none; border: 1px dashed color-mix(in srgb, var(--dim) 55%, transparent); }
 .cal i.g1 { background: color-mix(in srgb, var(--c-shi) 30%, transparent); }
 .cal i.g2 { background: color-mix(in srgb, var(--c-shi) 72%, transparent); }
 .cal i.g3 { background: color-mix(in srgb, var(--c-shi) 55%, var(--kinari)); }
