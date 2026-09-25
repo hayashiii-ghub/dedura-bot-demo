@@ -2,7 +2,7 @@ import './style.css'
 import { initCard } from './card'
 import { selectedMonth } from './month'
 import { blockers, escape as e, initialState, KEY, MONTH, parseState, SITES, TODAY, type State } from './state'
-import { bots, dialogContent, dialogs, expenseForm, header, invoiceForm, page, searchResults, sidebar, workForm } from './views'
+import { bots, dialogContent, dialogs, expenseForm, header, invoiceForm, page, searchResults, sidebar, timeFigure, workForm } from './views'
 
 const app = document.querySelector<HTMLDivElement>('#app')!
 let state: State
@@ -81,8 +81,8 @@ function render() {
 function elapsed() {
   const target = document.querySelector('[data-elapsed]')
   if (!target || !state.clock) return
-  const seconds = Math.max(0, Math.floor((Date.now() - state.clock.at) / 1000))
-  target.textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
+  const minutes = Math.max(0, Math.floor((Date.now() - state.clock.at) / 60000))
+  target.innerHTML = timeFigure(minutes)
 }
 setInterval(elapsed, 1000)
 

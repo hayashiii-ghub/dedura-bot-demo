@@ -4,7 +4,10 @@
 .home-period .month-step { height: 44px; margin-block: -10px; }
 .home-period .month { font-size: 1rem; white-space: nowrap; }
 .home-day { margin-left: 24px; color: var(--dim); white-space: nowrap; }
+.home-period span.month-step { opacity: .3; }
+.now.compact { min-height: 0; justify-content: flex-start; }
 .home-clock .now { min-height: var(--clock-card-height); margin: 0; max-width: none; width: 100%; padding: 18px; justify-content: center; gap: 12px; }
+.home-clock .clock-front > .mid { min-height: 64px; }
 .home-clock .where { min-width: 0; align-items: flex-start; overflow-wrap: anywhere; }
 .home-clock .where .live { margin-top: .5em; }
 .home-clock .mid { gap: 12px; }
@@ -14,7 +17,13 @@
 .home-clock .home-clock-form .solid { flex: none; }
 .home-clock .fig { font-size: clamp(1.65rem, 7vw, 2.1rem); line-height: 1.2; }
 .home-clock .since { overflow-wrap: anywhere; }
-.home-work-totals { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.clock-value { flex: 1; min-width: 0; }
+.home-clock .clock-value .fig { font-size: clamp(1.4rem, 6vw, 1.8rem); line-height: 32px; }
+.clock-detail { display: flex; align-items: center; gap: 6px; color: var(--dim); font-size: .72rem; line-height: 18px; }
+.clock-detail > span:last-child:not(.clock-site) { flex: none; white-space: nowrap; }
+.clock-site { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.clock-overtime { color: var(--dim); font-size: .7rem; line-height: 14px; }
+.clock-value .fig small, .clock-overtime small { line-height: 1; }
 @media (min-width: 900px) {
   .desktop-home .home-clock { max-width: 600px; margin: 0 auto; }
   .desktop-home .home-clock .now { padding: 20px; min-height: var(--clock-card-height); margin: 0; max-width: none; }
@@ -32,7 +41,7 @@
 /* 展開中の入力欄の高さは、その面を表示している間だけ使う。 */
 .home-clock .flip[data-flip-ready] .flip-face[hidden]:has(details[open]) { contain: size; }
 .home-clock .flip-face.ura { cursor: pointer; }
-.home-clock .flip[data-flip-ready] .flip-face:not(.ura) .where { padding-right: 36px; }
+.home-clock .flip[data-flip-ready] .flip-face:not(.ura) .home-period { padding-right: 84px; }
 .home-clock .flip:focus { outline: none; }
 /* カレンダー用の列幅を確保し、狭い画面でも金額と重ねない。 */
 .home-clock .flip-face.ura { --cell: clamp(11px, 3.2vw, 14px);
@@ -43,17 +52,18 @@
 .home-clock .flip-face.ura .fig > span { grid-area: 1 / 1; }
 .home-clock .count-size { visibility: hidden; pointer-events: none; }
 .home-clock .flip-face.ura .now { flex-direction: row; align-items: center; }
-/* 表の日付44px・間隔12px・操作欄48pxと同じ高さを確保する。 */
-.home-clock .stack-summary { flex: 1; min-width: 0; min-height: 104px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px; }
+/* 表の日付44px・間隔12px・操作欄64pxと同じ高さに揃える。 */
+.home-clock .stack-summary { flex: 1; min-width: 0; min-height: 120px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px; }
 .home-clock .stack-summary .home-period { cursor: default; }
 .home-clock .stack-value { margin-left: 24px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .home-clock .stack-summary .month-step[aria-hidden] { display: none; }
 .home-clock .stack-previous { color: var(--dim); font-size: .7rem; line-height: 16px; overflow-wrap: anywhere; }
 
 /* おもての右上の印。押せる範囲は44px */
-.flip-mark { position: absolute; top: 8px; right: 8px; z-index: 1; width: 44px; height: 44px;
-  display: grid; place-items: center; padding: 0;
-  background: none; border: 0; border-radius: 50%; cursor: pointer; }
+.flip-mark { position: absolute; top: 8px; right: 8px; z-index: 1; min-width: 44px; height: 44px;
+  display: flex; align-items: center; gap: 6px; padding: 0 10px;
+  background: none; border: 0; border-radius: 999px; cursor: pointer; color: var(--dim); font-size: .72rem; }
+.flip-label { white-space: nowrap; }
 .flip-mark:hover { background: color-mix(in srgb, var(--kinari) 8%, transparent); }
 .mark-kusa { display: grid; grid-template-columns: repeat(7, 3px); gap: 1.5px; }
 .mark-kusa i { width: 3px; height: 3px; border-radius: 1px; }

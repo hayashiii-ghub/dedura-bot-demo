@@ -83,7 +83,7 @@ a.month-step:hover, a.month-step:focus-visible { color: var(--kinari); }
   .desktop-home .page > header { display: none; }
   .desktop-sidebar-top > header { width: 100%; gap: 6px; margin: 0; padding: 4px 4px 10px; }
   .desktop-sidebar-top > header .demo-brand { flex: 1; padding: 0; min-width: 0; white-space: nowrap; font: 1.2rem var(--marker); }
-  .desktop-sidebar-top > header .demo-brand .month { font: 700 1.15rem var(--maru); color: var(--kinari); padding: 0; }
+  .desktop-sidebar-top > header .demo-brand .app-name { font: 400 1.2rem var(--marker); color: var(--kinari); padding: 0; }
   .desktop-sidebar-top > header .demo-brand .demo-brand-label { font: .58rem var(--mono); }
   .desktop-sidebar-top > header .search-link, .desktop-sidebar-top > header .round-button { width: 44px; height: 44px; min-height: 44px; display: grid; place-items: center; margin: 0; padding: 10px; border: 1.5px solid var(--line); border-radius: 50%; background: none; color: var(--kinari); }
   .desktop-sidebar-top > header .search-link .nav-icon { width: 18px; height: 18px; }
